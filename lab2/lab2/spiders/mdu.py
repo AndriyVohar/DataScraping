@@ -1,5 +1,5 @@
 import scrapy
-from bs4 import BeautifulSoup
+
 from lab2.items import FacultyItem, DepartmentItem, StaffItem
 
 class MduSpider(scrapy.Spider):
@@ -8,44 +8,55 @@ class MduSpider(scrapy.Spider):
     start_urls = ["https://msu.edu.ua/fakulteti"]
 
     def parse(self, response):
-        faculty_soup = BeautifulSoup(response.body, 'html.parser')
-        faculties_ul  = faculty_soup.find("article").find_all('ul')
-        for faculty_ul in faculties_ul:
-            faculty_item = faculty_ul.find_previous_sibling()
-            faculty_name = faculty_item.findChildren("strong")[0].find(string=True)
-            faculty_href = faculty_item.findChildren("a")[0].get('href')
-
-            yield FacultyItem(
-                name = faculty_name,
-                url = faculty_href
-            )
-            departments_a = faculty_ul.findChildren("a")
-            for department_a in departments_a:
-                department_name = department_a.find(string = True)
-                department_href = department_a.get('href')
+        faculties = response.css('article p a')
+        list_of_counters = [0]
+        list_of_faculties = []
+        for faculty in faculties:
+            faculty_strong = faculty.css('strong')
+            if(faculty_strong):
+                faculty_name = faculty.css('strong::text').get()
+                faculty_href = faculty.css('a::attr(href)').get()
+                yield FacultyItem(
+                    name=faculty_name,
+                    url=faculty_href
+                )
+                list_of_counters+=[list_of_counters[-1]+1]
+                list_of_faculties+=[faculty.css('strong::text').get()]
+        list_of_counters = list_of_counters[:-1]
+        yield scrapy.Request(
+            url="https://msu.edu.ua/fakulteti",
+            callback=self.parse_faculty,
+            meta={"faculty": list_of_faculties, "counter": list_of_counters}
+        )
+    def parse_faculty(self, response):
+        counter = response.meta.get('counter')
+        faculties = response.meta.get('faculty')
+        for count in counter:
+            ul = response.css('article ul')
+            for department in ul[count].css('li a'):
+                department_name = department.css('::text').get()
+                department_href = department.css('::attr(href)').get()
                 yield DepartmentItem(
-                    name = department_name,
-                    url = department_href,
-                    faculty = faculty_name
+                    name=department_name,
+                    url=department_href,
+                    faculty=faculties[count]
                 )
                 yield scrapy.Request(
                     url=department_href,
                     callback=self.parse_department,
                     meta={
-                        "department" : department_name
+                        'department': department_name
                     }
+                    
                 )
-
     def parse_department(self, response):
-        department_soup = BeautifulSoup(response.body, 'html.parser')
-        td_with_name = department_soup.find("td", string="Назва")
-        if td_with_name:
-            department_info_table = td_with_name.find_parent("table")
-            department_info_table_tds = department_info_table.findChildren("td")
-            yield StaffItem(
-                head_of_department = department_info_table_tds[3].find(string=True),
-                address = department_info_table_tds[5].find(string=True),
-                phone = department_info_table_tds[7].find(string=True),
-                email = department_info_table_tds[9].find(string=True),
-                department = response.meta.get('department')
-            )
+        department_info_table = response.css('table:contains("Назва")')
+        department_info_table_tds = department_info_table.css('td')
+
+        yield StaffItem(
+            head_of_department=department_info_table_tds[3].css('::text').get(),
+            address=department_info_table_tds[5].css('::text').get(),
+            phone=department_info_table_tds[7].css('::text').get(),
+            email=department_info_table_tds[9].css('::text').get(),
+            department=response.meta.get('department')
+        )
