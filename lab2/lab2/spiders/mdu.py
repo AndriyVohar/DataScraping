@@ -8,20 +8,18 @@ class MduSpider(scrapy.Spider):
     start_urls = ["https://msu.edu.ua/fakulteti"]
 
     def parse(self, response):
-        faculties = response.css('article p a')
-        list_of_counters = [0]
+        faculties = response.xpath('//article//a[strong]')
+        list_of_counters = [1]
         list_of_faculties = []
         for faculty in faculties:
-            faculty_strong = faculty.css('strong')
-            if(faculty_strong):
-                faculty_name = faculty.css('strong::text').get()
-                faculty_href = faculty.css('a::attr(href)').get()
-                yield FacultyItem(
-                    name=faculty_name,
-                    url=faculty_href
-                )
-                list_of_counters+=[list_of_counters[-1]+1]
-                list_of_faculties+=[faculty.css('strong::text').get()]
+            faculty_name = faculty.xpath('./strong/text()').get()
+            faculty_href = faculty.xpath('@href').get()
+            yield FacultyItem(
+                name=faculty_name,
+                url=faculty_href
+            )
+            list_of_counters+=[list_of_counters[-1]+1]
+            list_of_faculties+=[faculty_name]
         list_of_counters = list_of_counters[:-1]
         yield scrapy.Request(
             url="https://msu.edu.ua/fakulteti",
@@ -32,14 +30,14 @@ class MduSpider(scrapy.Spider):
         counter = response.meta.get('counter')
         faculties = response.meta.get('faculty')
         for count in counter:
-            ul = response.css('article ul')
-            for department in ul[count].css('li a'):
-                department_name = department.css('::text').get()
-                department_href = department.css('::attr(href)').get()
+            ul = response.xpath(f'//article//ul[{count}]')
+            for department in ul.xpath('./li/a'):
+                department_name = department.xpath('./text()').get()
+                department_href = department.xpath('@href').get()
                 yield DepartmentItem(
                     name=department_name,
                     url=department_href,
-                    faculty=faculties[count]
+                    faculty=faculties[count-1]
                 )
                 yield scrapy.Request(
                     url=department_href,
@@ -47,16 +45,16 @@ class MduSpider(scrapy.Spider):
                     meta={
                         'department': department_name
                     }
-                    
                 )
     def parse_department(self, response):
-        department_info_table = response.css('table:contains("Назва")')
-        department_info_table_tds = department_info_table.css('td')
+        department_info_table = response.xpath('//table[contains(., "Назва")]')
+        department_info_table_tds = department_info_table.xpath('.//td')
 
         yield StaffItem(
-            head_of_department=department_info_table_tds[3].css('::text').get(),
-            address=department_info_table_tds[5].css('::text').get(),
-            phone=department_info_table_tds[7].css('::text').get(),
-            email=department_info_table_tds[9].css('::text').get(),
+            head_of_department=department_info_table_tds[3].xpath('string()').get(),
+            address=department_info_table_tds[5].xpath('string()').get(),
+            phone=department_info_table_tds[7].xpath('string()').get(),
+            email=department_info_table_tds[9].xpath('string()').get(),
             department=response.meta.get('department')
         )
+
