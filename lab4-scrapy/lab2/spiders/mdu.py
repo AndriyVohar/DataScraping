@@ -1,11 +1,17 @@
 import scrapy
-
+import requests
 from lab2.items import FacultyItem, DepartmentItem, StaffItem
 
 class MduSpider(scrapy.Spider):
     name = "mdu"
     allowed_domains = ["msu.edu.ua"]
     start_urls = ["https://msu.edu.ua/fakulteti"]
+
+    database_url = "https://012b-176-120-107-53.ngrok-free.app/api"
+    headers = {'ngrok-skip-browser-warning': 'true'}
+    request_urls = [f"{database_url}/faculties",
+        f"{database_url}/departments", 
+        f"{database_url}/staffs"]
 
     def parse(self, response):
         faculties = response.xpath('//article//a[strong]')
@@ -14,6 +20,16 @@ class MduSpider(scrapy.Spider):
         for faculty in faculties:
             faculty_name = faculty.xpath('./strong/text()').get()
             faculty_href = faculty.xpath('@href').get()
+            data = {'name': faculty_name, 'url': faculty_href}
+            
+            # POST
+            response = requests.post(self.request_urls[0], data=data, headers=self.headers)
+            # yield scrapy.Request(
+            #     url="https://012b-176-120-107-53.ngrok-free.app/api/faculties",
+            #     method="POST",
+            #     body=data,
+            #     headers=self.headers
+            # )
             yield FacultyItem(
                 name=faculty_name,
                 url=faculty_href
