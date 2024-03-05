@@ -2,6 +2,9 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\DepartmentItemController;
+use App\Http\Controllers\Api\FacultyItemController;
+use App\Http\Controllers\Api\StaffItemController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,3 +20,9 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::apiResources([
+    'departments'=>DepartmentItemController::class,
+    'faculties'=>FacultyItemController::class,
+    'staffs'=>StaffItemController::class,
+]);
