@@ -7,6 +7,8 @@
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
 from re import search
+import requests
+import scrapy
 from scrapy.exceptions import DropItem
 from lab2.items import StaffItem, DepartmentItem, FacultyItem
 import mysql.connector
@@ -43,6 +45,19 @@ class Lab2Pipeline:
             item['head_of_department'] = res.group(0)
             item['address'] = address
             return item
+
+class PostRequestPipeline:
+    database_url = "https://012b-176-120-107-53.ngrok-free.app/api"
+    request_urls = [
+        f"{database_url}/faculties",
+        f"{database_url}/departments",
+        f"{database_url}/staffs"
+    ]
+    headers = {'ngrok-skip-browser-warning': 'true'}
+    def process_item(self, item, spider):
+        if isinstance(item, FacultyItem):
+            data = {'name': item.get('name'), 'url': item.get('url')}
+            requests.post(self.request_urls[0], data=data, headers=self.headers)
 
 class MySqlPipeline:
     def open_spider(self, spider):
