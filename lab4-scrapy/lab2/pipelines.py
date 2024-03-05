@@ -8,7 +8,6 @@
 from itemadapter import ItemAdapter
 from re import search
 import requests
-import scrapy
 from scrapy.exceptions import DropItem
 from lab2.items import StaffItem, DepartmentItem, FacultyItem
 import mysql.connector
@@ -58,6 +57,18 @@ class PostRequestPipeline:
         if isinstance(item, FacultyItem):
             data = {'name': item.get('name'), 'url': item.get('url')}
             requests.post(self.request_urls[0], data=data, headers=self.headers)
+        if isinstance(item, DepartmentItem):
+            data = {'name': item.get('name'), 'url': item.get('url'), 'faculty':item.get('faculty')}
+            requests.post(self.request_urls[1], data=data, headers=self.headers)
+        if isinstance(item, StaffItem):
+            data = {
+                'head_of_department': item.get('head_of_department'), 
+                'address': item.get('address'), 
+                'phone': item.get('phone'), 
+                'email': item.get('email'), 
+                'department': item.get('department'), 
+            }
+            requests.post(self.request_urls[2], data=data, headers=self.headers)
 
 class MySqlPipeline:
     def open_spider(self, spider):
