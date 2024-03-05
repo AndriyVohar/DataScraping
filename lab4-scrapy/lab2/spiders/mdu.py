@@ -30,10 +30,10 @@ class MduSpider(scrapy.Spider):
             #     body=data,
             #     headers=self.headers
             # )
-            yield FacultyItem(
-                name=faculty_name,
-                url=faculty_href
-            )
+            # yield FacultyItem(
+            #     name=faculty_name,
+            #     url=faculty_href
+            # )
             list_of_counters+=[list_of_counters[-1]+1]
             list_of_faculties+=[faculty_name]
         list_of_counters = list_of_counters[:-1]
@@ -50,11 +50,13 @@ class MduSpider(scrapy.Spider):
             for department in ul.xpath('./li/a'):
                 department_name = department.xpath('./text()').get()
                 department_href = department.xpath('@href').get()
-                yield DepartmentItem(
-                    name=department_name,
-                    url=department_href,
-                    faculty=faculties[count-1]
-                )
+                data = {"name":department_name,"url":department_href, "faculty":faculties[count-1]}
+                response = requests.post(self.request_urls[1], data=data, headers=self.headers)
+                # yield DepartmentItem(
+                #     name=department_name,
+                #     url=department_href,
+                #     faculty=faculties[count-1]
+                # )
                 yield scrapy.Request(
                     url=department_href,
                     callback=self.parse_department,
@@ -65,12 +67,19 @@ class MduSpider(scrapy.Spider):
     def parse_department(self, response):
         department_info_table = response.xpath('//table[contains(., "Назва")]')
         department_info_table_tds = department_info_table.xpath('.//td')
-
-        yield StaffItem(
-            head_of_department=department_info_table_tds[3].xpath('string()').get(),
-            address=department_info_table_tds[5].xpath('string()').get(),
-            phone=department_info_table_tds[7].xpath('string()').get(),
-            email=department_info_table_tds[9].xpath('string()').get(),
-            department=response.meta.get('department')
-        )
+        data = {
+            "head_of_department":department_info_table_tds[3].xpath('string()').get(),
+            "address":department_info_table_tds[5].xpath('string()').get(),
+            "phone":department_info_table_tds[7].xpath('string()').get(),
+            "email":department_info_table_tds[9].xpath('string()').get(),
+            "department":response.meta.get('department')
+        }
+        response = requests.post(self.request_urls[2], data=data, headers=self.headers)
+        # yield StaffItem(
+        #     head_of_department=department_info_table_tds[3].xpath('string()').get(),
+        #     address=department_info_table_tds[5].xpath('string()').get(),
+        #     phone=department_info_table_tds[7].xpath('string()').get(),
+        #     email=department_info_table_tds[9].xpath('string()').get(),
+        #     department=response.meta.get('department')
+        # )
 
