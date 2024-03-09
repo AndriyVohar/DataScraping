@@ -7,8 +7,8 @@ from scrapy import signals
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
-
-
+from lab2.items import StaffItem, DepartmentItem, FacultyItem
+import requests
 class Lab2SpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
     # scrapy acts as if the spider middleware does not modify the
@@ -33,8 +33,26 @@ class Lab2SpiderMiddleware:
         # it has processed the response.
 
         # Must return an iterable of Request, or item objects.
-        for i in result:
-            yield i
+        for item in result:
+            data = {}
+            url = spider.settings.get("POST_URL")
+            if isinstance(item,FacultyItem):
+                data = {'name': item.get('name'), 'url': item.get('url')}
+                url = f"{url}/faculties"
+            elif isinstance(item, DepartmentItem):
+                data = {'name': item.get('name'), 'url': item.get('url'), 'faculty':item.get('faculty')}
+                url = f"{url}/departments"
+            elif isinstance(item, StaffItem):
+                data = {
+                    'head_of_department': item.get('head_of_department'), 
+                    'address': item.get('address'), 
+                    'phone': item.get('phone'), 
+                    'email': item.get('email'), 
+                    'department': item.get('department'), 
+                }
+                url = f"{url}/staffs"
+            requests.post(url, data=data, headers={'ngrok-skip-browser-warning': 'true'})
+            yield item
 
     def process_spider_exception(self, response, exception, spider):
         # Called when a spider or process_spider_input() method

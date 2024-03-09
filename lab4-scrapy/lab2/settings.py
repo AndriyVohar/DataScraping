@@ -45,10 +45,10 @@ ROBOTSTXT_OBEY = False
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    "lab2.middlewares.Lab2SpiderMiddleware": 543,
-#}
-
+SPIDER_MIDDLEWARES = {
+   "lab2.middlewares.Lab2SpiderMiddleware": 543,
+}
+POST_URL = "https://7adf-176-120-107-53.ngrok-free.app/api"
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {
@@ -66,7 +66,7 @@ ROBOTSTXT_OBEY = False
 ITEM_PIPELINES = {
    "lab2.pipelines.Lab2Pipeline": 300,
    # "lab2.pipelines.MySqlPipeline": 400,
-   "lab2.pipelines.PostRequestPipeline": 400,
+   # "lab2.pipelines.PostRequestPipeline": 400,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

@@ -45,31 +45,6 @@ class Lab2Pipeline:
             item['address'] = address
             return item
 
-class PostRequestPipeline:
-    database_url = "https://012b-176-120-107-53.ngrok-free.app/api"
-    request_urls = [
-        f"{database_url}/faculties",
-        f"{database_url}/departments",
-        f"{database_url}/staffs"
-    ]
-    headers = {'ngrok-skip-browser-warning': 'true'}
-    def process_item(self, item, spider):
-        if isinstance(item, FacultyItem):
-            data = {'name': item.get('name'), 'url': item.get('url')}
-            requests.post(self.request_urls[0], data=data, headers=self.headers)
-        if isinstance(item, DepartmentItem):
-            data = {'name': item.get('name'), 'url': item.get('url'), 'faculty':item.get('faculty')}
-            requests.post(self.request_urls[1], data=data, headers=self.headers)
-        if isinstance(item, StaffItem):
-            data = {
-                'head_of_department': item.get('head_of_department'), 
-                'address': item.get('address'), 
-                'phone': item.get('phone'), 
-                'email': item.get('email'), 
-                'department': item.get('department'), 
-            }
-            requests.post(self.request_urls[2], data=data, headers=self.headers)
-
 class MySqlPipeline:
     def open_spider(self, spider):
         self.connection = mysql.connector.connect(
