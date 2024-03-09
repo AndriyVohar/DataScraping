@@ -1,0 +1,13 @@
+deploy.py
+lab2/__init__.py
+lab2/items.py
+lab2/middlewares.py
+lab2/pipelines.py
+lab2/settings.py
+lab2.egg-info/PKG-INFO
+lab2.egg-info/SOURCES.txt
+lab2.egg-info/dependency_links.txt
+lab2.egg-info/entry_points.txt
+lab2.egg-info/top_level.txt
+lab2/spiders/__init__.py
+lab2/spiders/mdu.py
