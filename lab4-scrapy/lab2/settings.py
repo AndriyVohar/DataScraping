@@ -48,7 +48,7 @@ ROBOTSTXT_OBEY = False
 SPIDER_MIDDLEWARES = {
    "lab2.middlewares.Lab2SpiderMiddleware": 543,
 }
-POST_URL = "https://7adf-176-120-107-53.ngrok-free.app/api"
+POST_URL = "https://fe31-46-164-128-2.ngrok-free.app/api"
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #DOWNLOADER_MIDDLEWARES = {

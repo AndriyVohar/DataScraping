@@ -4,10 +4,12 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+import json
 
 # useful for handling different item types with a single interface
 from itemadapter import is_item, ItemAdapter
 from lab2.items import StaffItem, DepartmentItem, FacultyItem
+from scrapy.http import JsonRequest
 import requests
 class Lab2SpiderMiddleware:
     # Not all methods need to be defined. If a method is not defined,
@@ -51,7 +53,13 @@ class Lab2SpiderMiddleware:
                     'department': item.get('department'), 
                 }
                 url = f"{url}/staffs"
-            requests.post(url, data=data, headers={'ngrok-skip-browser-warning': 'true'})
+            yield JsonRequest(
+                url = url, 
+                method="POST",
+                body=json.dumps(data),
+                headers={'ngrok-skip-browser-warning': 'true'}
+            )
+            # requests.post(url, data=data, headers={'ngrok-skip-browser-warning': 'true'})
             yield item
 
     def process_spider_exception(self, response, exception, spider):
